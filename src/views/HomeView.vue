@@ -13,6 +13,10 @@ const doing = ref<Item[]>([])
 const done = ref<Item[]>([])
 const message = ref<string>('')
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+})
+
 function populateLists(items: Item[]) {
   const grouped = _.groupBy(items, 'list')
 
@@ -24,7 +28,7 @@ function populateLists(items: Item[]) {
 
 async function fetchItems() {
   try {
-    const res = await axios.get<[Item]>('https://vannellen.com/kanban/')
+    const res = await api.get<[Item]>('/')
     populateLists(res.data)
   } catch (err) {
     console.error(err)
@@ -33,13 +37,9 @@ async function fetchItems() {
   }
 }
 
-async function moveItem(id: number, list: string) {
-  const item: Item = {
-    id,
-    list,
-  }
+async function updateItem(item: Item) {
   try {
-    const res = await axios.post('https://vannellen.com/kanban/move', item)
+    const res = await api.put('/update', item)
     message.value = res.data
   } catch (err) {
     console.error(err)
@@ -50,7 +50,10 @@ async function moveItem(id: number, list: string) {
 
 function onMoveCallback(column: string, evt: any) {
   if (evt.added) {
-    moveItem(evt.added.element.id, column)
+    updateItem({
+      ...evt.added.element,
+      list: column,
+    } as Item)
   }
 }
 
@@ -62,19 +65,19 @@ fetchItems()
     Column(heading="Features")
       draggable.draggable(v-model="features" item-key="id" group="tasks" @change="(evt) => onMoveCallback('features', evt)")
         template(#item="{ element }")
-          ToDoItem(:item="element")
+          ToDoItem(:item="element" @update="updateItem($event)")
     Column(heading="Bugs")
       draggable.draggable(v-model="bugs" item-key="id" group="tasks" @change="(evt) => onMoveCallback('bugs', evt)")
         template(#item="{ element }")
-          ToDoItem(:item="element")
+          ToDoItem(:item="element" @update="updateItem($event)")
     Column(heading="Doing")
       draggable.draggable(v-model="doing" item-key="id" group="tasks" @change="(evt) => onMoveCallback('doing', evt)")
         template(#item="{ element }")
-          ToDoItem(:item="element")
+          ToDoItem(:item="element" @update="updateItem($event)")
     Column(heading="Done")
       draggable.draggable(v-model="done" item-key="id" group="tasks" @change="(evt) => onMoveCallback('done', evt)")
         template(#item="{ element }")
-          ToDoItem(:item="element")
+          ToDoItem(:item="element" @update="updateItem($event)")
   p {{ message.value }}
 </template>
 

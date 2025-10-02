@@ -7,17 +7,20 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-// TODO const emit = defineEmits<{ (e: 'update:title', value: string): void }>()
+const emit = defineEmits<{ (e: 'update', value: Item): void }>()
 
-const localTitle = ref(props.item.title)
+const localItem = ref<Item>(props.item)
 watch(
   () => props.item,
   (newItem) => {
-    localTitle.value = newItem.title
+    localItem.value = newItem
   },
 )
 const editingHeading = ref<boolean>(false)
 const headingInput = ref<HTMLInputElement | null>(null)
+
+const editingBody = ref<boolean>(false)
+const bodyInput = ref<HTMLInputElement | null>(null)
 
 async function headingDoubleClicked(e: MouseEvent) {
   editingHeading.value = true
@@ -25,8 +28,20 @@ async function headingDoubleClicked(e: MouseEvent) {
   headingInput.value?.focus()
 }
 
+async function bodyDoubleClicked(e: MouseEvent) {
+  editingBody.value = true
+  await nextTick()
+  bodyInput.value?.focus()
+}
+
 function editingHeadingEnded() {
   editingHeading.value = false
+  emit('update', localItem.value)
+}
+
+function editingBodyEnded() {
+  editingBody.value = false
+  emit('update', localItem.value)
 }
 </script>
 
@@ -34,9 +49,12 @@ function editingHeadingEnded() {
   .item
     .details
       h3(@dblclick="headingDoubleClicked" v-if="!editingHeading")
-        | {{ item.title }}
-      input(type="text" ref="headingInput" v-model="localTitle" v-else v-on:blur="editingHeadingEnded" @keyup.enter="editingHeadingEnded")
-      p {{ item.content }}
+        | {{ localItem.title }}
+      input(type="text" ref="headingInput" v-model="localItem.title" v-else v-on:blur="editingHeadingEnded" @keyup.enter="editingHeadingEnded")
+      p(@dblclick="bodyDoubleClicked" v-if="!editingBody")
+        | {{ localItem.content }}
+      textarea(rows="6" ref="bodyInput" v-model="localItem.content" v-else v-on:blur="editingBodyEnded")
+    .controls
 </template>
 
 <style lang="scss" scoped>
@@ -54,7 +72,10 @@ $heading_color: #333;
 
 .details {
   flex: 1;
-  margin-left: 1rem;
+  margin: 0 1rem 1rem 1rem;
+  p {
+    white-space: pre;
+  }
 }
 
 h3 {
@@ -62,5 +83,9 @@ h3 {
   font-weight: 500;
   margin-bottom: 0.4rem;
   color: $heading_color;
+}
+
+textarea {
+  width: 100%;
 }
 </style>
