@@ -24,7 +24,7 @@ function populateLists(items: Item[]) {
 
 async function fetchItems() {
   try {
-    const res = await axios.get<[Item]>('http://localhost:3000')
+    const res = await axios.get<[Item]>('https://vannellen.com/kanban/')
     populateLists(res.data)
   } catch (err) {
     console.error(err)
@@ -39,7 +39,7 @@ async function moveItem(id: number, list: string) {
     list,
   }
   try {
-    const res = await axios.post('http://localhost:3000/move', item)
+    const res = await axios.post('https://vannellen.com/kanban/move', item)
     message.value = res.data
   } catch (err) {
     console.error(err)
