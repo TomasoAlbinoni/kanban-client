@@ -20,10 +20,10 @@ const api = axios.create({
 function populateLists(items: Item[]) {
   const grouped = _.groupBy(items, 'list')
 
-  features.value = grouped['features'] ?? []
-  bugs.value = grouped['bugs'] ?? []
-  doing.value = grouped['doing'] ?? []
-  done.value = grouped['done'] ?? []
+  features.value = grouped['features'] ? _.sortBy(grouped['features'], 'index') : []
+  bugs.value = grouped['bugs'] ? _.sortBy(grouped['bugs'], 'index') : []
+  doing.value = grouped['doing'] ? _.sortBy(grouped['doing'], 'index') : []
+  done.value = grouped['done'] ? _.sortBy(grouped['done'], 'index') : []
 }
 
 async function fetchItems() {
@@ -49,10 +49,13 @@ async function updateItem(item: Item) {
 }
 
 function onMoveCallback(column: string, evt: any) {
-  if (evt.added) {
+  if (evt.added || evt.moved) {
+    const element: Item = evt.added?.element ?? evt.moved.element
+    const newIndex: number = evt.added?.newIndex ?? evt.moved.newIndex
     updateItem({
-      ...evt.added.element,
+      ...element,
       list: column,
+      index: newIndex,
     } as Item)
   }
 }

@@ -3,4 +3,5 @@ export type Item = {
   title?: string
   content?: string
   list: string
+  index: number
 }
