@@ -5,3 +5,8 @@ export type Item = {
   list: string
   index: number
 }
+
+export type Credentials = {
+  username: string
+  password: string
+}

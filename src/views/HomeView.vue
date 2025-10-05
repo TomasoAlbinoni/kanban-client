@@ -1,21 +1,18 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import _ from 'lodash'
+import type { AxiosError } from 'axios'
+import api from '@/lib/api'
+import type { Item } from '@/types'
 import Column from '@/components/KanbanColumn.vue'
 import ToDoItem from '@/components/ToDoItem.vue'
-import { ref } from 'vue'
 import draggable from 'vuedraggable'
-import axios from 'axios'
-import _ from 'lodash'
-import type { Item } from '@/types'
 
 const features = ref<Item[]>([])
 const bugs = ref<Item[]>([])
 const doing = ref<Item[]>([])
 const done = ref<Item[]>([])
 const message = ref<string>('')
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-})
 
 function populateLists(items: Item[]) {
   const grouped = _.groupBy(items, 'list')
@@ -28,10 +25,14 @@ function populateLists(items: Item[]) {
 
 async function fetchItems() {
   try {
-    const res = await api.get<[Item]>('/')
+    const res = await api.get<[Item]>('/tasks/')
     populateLists(res.data)
   } catch (err) {
     console.error(err)
+    const error = err as AxiosError
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/login'
+    }
   } finally {
     //
   }
@@ -39,10 +40,14 @@ async function fetchItems() {
 
 async function updateItem(item: Item) {
   try {
-    const res = await api.put('/update', item)
+    const res = await api.put('/tasks/update', item)
     message.value = res.data
   } catch (err) {
     console.error(err)
+    const error = err as AxiosError
+    if (error.status === 401 || error.status === 403) {
+      window.location.href = '/login'
+    }
   } finally {
     //
   }
@@ -88,11 +93,6 @@ fetchItems()
 $column_text_color: #222;
 $column_bg_color: lightgray;
 
-main {
-  display: flex;
-  justify-content: space-around;
-  align-items: start;
-}
 .draggable {
   height: 100%;
   min-height: 100px;
