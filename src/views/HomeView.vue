@@ -38,9 +38,13 @@ async function fetchItems() {
   }
 }
 
-async function updateItem(item: Item) {
+async function updateItem(item: Item, column: string, index: number) {
   try {
-    const res = await api.put('/tasks/update', item)
+    const res = await api.put('/tasks/update', {
+      ...item,
+      list: column,
+      index: index,
+    } as Item)
     message.value = res.data
   } catch (err) {
     console.error(err)
@@ -57,11 +61,7 @@ function onMoveCallback(column: string, evt: any) {
   if (evt.added || evt.moved) {
     const element: Item = evt.added?.element ?? evt.moved.element
     const newIndex: number = evt.added?.newIndex ?? evt.moved.newIndex
-    updateItem({
-      ...element,
-      list: column,
-      index: newIndex,
-    } as Item)
+    updateItem(element, column, newIndex)
   }
 }
 
@@ -72,20 +72,20 @@ fetchItems()
   main
     Column(heading="Features")
       draggable.draggable(v-model="features" item-key="id" group="tasks" @change="(evt) => onMoveCallback('features', evt)")
-        template(#item="{ element }")
-          ToDoItem(:item="element" @update="updateItem($event)")
+        template(#item="{ element, index }")
+          ToDoItem(:item="element" @update="updateItem($event, 'features', index)")
     Column(heading="Bugs")
       draggable.draggable(v-model="bugs" item-key="id" group="tasks" @change="(evt) => onMoveCallback('bugs', evt)")
-        template(#item="{ element }")
-          ToDoItem(:item="element" @update="updateItem($event)")
+        template(#item="{ element, index }")
+          ToDoItem(:item="element" @update="updateItem($event, 'bugs', index)")
     Column(heading="Doing")
       draggable.draggable(v-model="doing" item-key="id" group="tasks" @change="(evt) => onMoveCallback('doing', evt)")
-        template(#item="{ element }")
-          ToDoItem(:item="element" @update="updateItem($event)")
+        template(#item="{ element, index }")
+          ToDoItem(:item="element" @update="updateItem($event, 'doing', index)")
     Column(heading="Done")
       draggable.draggable(v-model="done" item-key="id" group="tasks" @change="(evt) => onMoveCallback('done', evt)")
-        template(#item="{ element }")
-          ToDoItem(:item="element" @update="updateItem($event)")
+        template(#item="{ element, index }")
+          ToDoItem(:item="element" @update="updateItem($event, 'done', index)")
   p {{ message.value }}
 </template>
 
