@@ -7,7 +7,10 @@ type Props = {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{ (e: 'update', value: Item): void }>()
+const emit = defineEmits<{
+  (e: 'update', value: Item): void
+  (e: 'delete', value: Item): void
+}>()
 
 const localItem = ref<Item>(props.item)
 watch(
@@ -23,12 +26,18 @@ const editingBody = ref<boolean>(false)
 const bodyInput = ref<HTMLInputElement | null>(null)
 
 async function headingDoubleClicked(e: MouseEvent) {
+  if (localItem.value.id === -1) {
+    return
+  }
   editingHeading.value = true
   await nextTick()
   headingInput.value?.focus()
 }
 
 async function bodyDoubleClicked(e: MouseEvent) {
+  if (localItem.value.id === -1) {
+    return
+  }
   editingBody.value = true
   await nextTick()
   bodyInput.value?.focus()
@@ -46,7 +55,8 @@ function editingBodyEnded() {
 </script>
 
 <template lang="pug">
-  .item
+  .item(:class="{ deleting: localItem.deleting }")
+    .delete-button(@dblclick="$emit('delete', localItem)") ×
     .details
       h3(@dblclick="headingDoubleClicked" v-if="!editingHeading")
         | {{ localItem.title }}
@@ -54,7 +64,6 @@ function editingBodyEnded() {
       p(@dblclick="bodyDoubleClicked" v-if="!editingBody")
         | {{ localItem.content }}
       textarea(rows="6" ref="bodyInput" v-model="localItem.content" v-else v-on:blur="editingBodyEnded")
-    .controls
 </template>
 
 <style lang="scss" scoped>
@@ -70,11 +79,16 @@ $heading_color: #333;
   border: 1px solid $border_color;
 }
 
+.item.deleting {
+  display: none;
+}
+
 .details {
   flex: 1;
   margin: 0 1rem 1rem 1rem;
   p {
     white-space: pre;
+    min-height: 30px;
   }
 }
 
@@ -87,5 +101,16 @@ h3 {
 
 textarea {
   width: 100%;
+}
+
+.delete-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 3rem;
+  color: red;
+  background: none;
+  border: none;
+  line-height: 0.5;
 }
 </style>

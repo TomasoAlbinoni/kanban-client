@@ -4,6 +4,7 @@ export type Item = {
   content?: string
   list: string
   index: number
+  deleting?: boolean
 }
 
 export type Credentials = {
