@@ -49,9 +49,14 @@ router.beforeEach((to, from, next) => {
     return next('/login')
   }
   if (to.meta.requiresAdmin) {
-    const payload = JSON.parse(atob(token!.split('.')[1] ?? ''))
-    if (!payload.admin) {
-      return next('/signup')
+    try {
+      const payload = JSON.parse(atob(token!.split('.')[1] ?? ''))
+      if (!payload.admin) {
+        return next('/signup')
+      }
+    } catch {
+      localStorage.removeItem('token')
+      return next('/login')
     }
   }
   next()
